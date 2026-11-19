@@ -4,8 +4,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
 )
+
+func TestModuleRegistered(t *testing.T) {
+	if _, err := caddy.GetModule("http.matchers.ip2region"); err != nil {
+		t.Fatalf("GetModule() error = %v", err)
+	}
+}
 
 func TestUnmarshalCaddyfile(t *testing.T) {
 	dispenser := caddyfile.NewTestDispenser(`ip2region {

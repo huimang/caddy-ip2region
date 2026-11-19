@@ -49,6 +49,9 @@ func (Matcher) CaddyModule() caddy.ModuleInfo {
 
 // Provision 加载 xdb 并创建并发安全的查询服务。
 func (m *Matcher) Provision(_ caddy.Context) error {
+	if m.DBPath == "" {
+		return fmt.Errorf("db_path is required")
+	}
 	if m.Searchers == 0 {
 		m.Searchers = defaultSearchers
 	}

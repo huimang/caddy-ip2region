@@ -1,6 +1,7 @@
 package ip2region
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -97,7 +98,7 @@ func parseSearchers(value string) (int, error) {
 		return 0, err
 	}
 	if searchers <= 0 {
-		return 0, strconv.ErrSyntax
+		return 0, fmt.Errorf("must be greater than 0")
 	}
 	return searchers, nil
 }
