@@ -8,13 +8,16 @@ func TestCountryCode(t *testing.T) {
 		region string
 		want   string
 	}{
-		{name: "中国大陆省份", region: "中国|0|广东省|深圳市|电信", want: "CN"},
+		{name: "中国大陆省份", region: "中国|浙江省|杭州市|阿里|CN", want: "CN"},
 		{name: "中国未知区域", region: "中国|0|0|0|0", want: "CN"},
-		{name: "中国香港", region: "中国|0|香港特别行政区|0|0", want: "HK"},
-		{name: "中国澳门", region: "中国|0|澳门特别行政区|0|0", want: "MO"},
-		{name: "中国台湾", region: "中国|0|台湾省|台北市|0", want: "TW"},
-		{name: "海外国家", region: "阿联酋|0|迪拜|0|0", want: "AE"},
-		{name: "海外别名", region: "印度尼西亚|0|雅加达|0|0", want: "ID"},
+		{name: "中国香港", region: "中国|香港特别行政区|0|电讯盈科|CN", want: "HK"},
+		{name: "中国澳门", region: "中国|澳门特别行政区|0|澳门电讯|CN", want: "MO"},
+		{name: "中国台湾", region: "中国|台湾省|0|中华电信|CN", want: "TW"},
+		{name: "标准格式中国香港", region: "中国|0|香港特别行政区|0|0", want: "HK"},
+		{name: "海外国家码字段", region: "United Arab Emirates|Dubai|0|0|AE", want: "AE"},
+		{name: "海外标准格式", region: "Singapore|Singapore|0|SingNet|SG", want: "SG"},
+		{name: "无国家码字段", region: "美国|0|加利福尼亚州|0|0", want: "US"},
+		{name: "保留地址", region: "Reserved|Reserved|Reserved|0|0", want: ""},
 		{name: "未知区域", region: "0|0|0|0|0", want: ""},
 		{name: "空字符串", region: "", want: ""},
 	}
