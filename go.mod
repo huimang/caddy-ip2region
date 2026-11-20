@@ -1,4 +1,4 @@
-module github.com/huimang/caddy-ip2region
+module github.com/huimang/caddy-ip2region/v2
 
 go 1.25.1
 
