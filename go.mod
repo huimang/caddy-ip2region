@@ -5,6 +5,7 @@ go 1.25.1
 require (
 	github.com/caddyserver/caddy/v2 v2.11.4
 	github.com/lionsoul2014/ip2region/binding/golang v0.0.0-20261112022628-200f4cc7a645
+	golang.org/x/text v0.37.0
 )
 
 require (
@@ -139,7 +140,6 @@ require (
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
-	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
 	google.golang.org/api v0.277.0 // indirect

@@ -17,8 +17,17 @@ func TestCountryCode(t *testing.T) {
 		{name: "海外国家码字段", region: "United Arab Emirates|Dubai|0|0|AE", want: "AE"},
 		{name: "海外标准格式", region: "Singapore|Singapore|0|SingNet|SG", want: "SG"},
 		{name: "无国家码字段", region: "美国|0|加利福尼亚州|0|0", want: "US"},
+		{name: "意大利标准格式", region: "意大利|0|拉齐奥|罗马|0", want: "IT"},
+		{name: "南非英文名称", region: "South Africa|0|Gauteng|0|0", want: "ZA"},
+		{name: "阿联酋简称", region: "阿联酋|Dubai|0|0|0", want: "AE"},
+		{name: "香港英文名称", region: "Hong Kong|0|0|0|0", want: "HK"},
+		{name: "中国香港国家段", region: "中国香港|0|0|0|0", want: "HK"},
+		{name: "澳门英文名称", region: "Macao|0|0|0|0", want: "MO"},
+		{name: "台湾英文名称", region: "Taiwan|0|0|0|0", want: "TW"},
+		{name: "旧称斯威士兰", region: "Swaziland|0|0|0|0", want: "SZ"},
 		{name: "保留地址", region: "Reserved|Reserved|Reserved|0|0", want: ""},
 		{name: "未知区域", region: "0|0|0|0|0", want: ""},
+		{name: "未知国家", region: "Atlantis|0|0|0|0", want: ""},
 		{name: "空字符串", region: "", want: ""},
 	}
 

@@ -13,6 +13,8 @@
 - 实现 `Cleanup`，Caddy 热重载时自动释放旧查询服务。
 - 单独识别中国香港、中国澳门和中国台湾。
 - 兼容两种 xdb 字段格式，优先使用数据中的 ISO 国家码。
+- 使用完整的 ISO 3166-1 alpha-2 列表校验允许和拒绝的国家码。
+- 通过 CLDR 解析全部 ISO 代码的英文和简体中文国家名。
 
 ## 环境要求
 
@@ -95,7 +97,7 @@ gymlin.com {
 | `deny_countries` | 二选一 | 拒绝的国家或地区 ISO 3166-1 二字码列表 |
 | `searchers` | 否 | 查询器池大小，默认 20，必须大于 0 |
 
-`allow_countries` 与 `deny_countries` 至少配置一个，否则配置校验失败。
+`allow_countries` 与 `deny_countries` 至少配置一个，否则配置校验失败。所有代码都会按 ISO 3166-1 alpha-2 的 249 个官方代码校验，非法代码同样会导致校验失败。`UK` 会归一为 `GB`，`EL` 归一为 `GR`，并额外接受科索沃的用户分配代码 `XK`。
 
 匹配规则：
 
@@ -104,7 +106,7 @@ gymlin.com {
 - 两者都配置：必须在 `allow_countries` 中，且不能在 `deny_countries` 中。
 - IP 无法解析、数据缺失或国家码无法识别时不匹配。
 
-国家码统一转为大写后比较，Caddyfile 中写 `cn` 或 `CN` 均可。
+国家码统一转为大写后比较，Caddyfile 中写 `cn` 或 `CN` 均可；别名会在校验前完成归一。
 
 ### JSON 配置
 
@@ -161,10 +163,10 @@ United Arab Emirates|Dubai|0|0|AE
 
 解析规则：
 
-1. 最后一个字段为两位字母时，直接作为 ISO 国家码返回。
-2. 中国条目优先按省份识别 `HK`、`MO`、`TW`，其余返回 `CN`。
+1. 最后一个字段是合法的 ISO 3166-1 alpha-2 代码时，直接作为国家码返回。
+2. 中国条目会检查国家段和省份段中的 `HK`、`MO`、`TW` 写法，其余返回 `CN`。
 3. `Reserved` 或 `0` 等无法识别的条目返回空，匹配器视为不匹配。
-4. 缺少国家码字段时，按内置的国家名映射兜底；新增国家时可在 `country.go` 的 `countryISO` 中补充。
+4. 缺少国家码字段时，通过 CLDR 解析英文和简体中文国家名，并补充常见简称和旧称；非标准名称可在 `iso.go` 的 `countryNameAliases` 中追加。
 
 ## 数据更新
 
@@ -195,6 +197,8 @@ go test ./...
 - Caddyfile 解析
 - 必填项和国家码校验
 - 客户端 IP 回退
+- 完整 ISO 3166-1 代码列表和逐代码提取
+- 英文和简体中文国家名兜底
 - 国家码提取和港澳台识别
 
 ## 项目结构
@@ -202,9 +206,11 @@ go test ./...
 ```text
 caddy-ip2region/
 ├── matcher.go        # 模块注册、加载、匹配、Caddyfile 解析
-├── country.go        # region 字符串解析与国家码映射
+├── country.go        # region 字符串解析与特殊地区识别
+├── iso.go            # ISO 国家码、国家名和别名
 ├── matcher_test.go   # 模块与配置测试
 ├── country_test.go   # 国家码提取测试
+├── iso_test.go       # ISO 覆盖与国家名兜底测试
 ├── go.mod
 └── go.sum
 ```
@@ -239,7 +245,7 @@ sudo systemctl restart caddy
 - 仅提供国家或地区级别匹配，不提供城市级匹配。
 - 国家识别准确度依赖 ip2region 数据源。
 - 未配置 `db_path_v6` 时，IPv6 客户端不会命中。
-- 国家名映射表只覆盖常用国家，未知国家名需要自行补充。
+- 国家名兜底使用 CLDR 英文和简体中文名称加少量别名；非常规或厂商自定义名称需要补充别名。
 
 ## 许可证
 

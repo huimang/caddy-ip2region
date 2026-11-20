@@ -6,89 +6,18 @@ import (
 	"strings"
 )
 
-// countryISO 是国家名到 ISO 3166-1 二字码的兜底映射。
-// 当前 xdb 的最后一个字段通常已经是国家码，仅在缺失该字段时使用此表。
-var countryISO = map[string]string{
-	"中国":                   "CN",
-	"China":                "CN",
-	"阿联酋":                  "AE",
-	"阿拉伯联合酋长国":             "AE",
-	"United Arab Emirates": "AE",
-	"沙特阿拉伯":                "SA",
-	"沙特":                   "SA",
-	"Saudi Arabia":         "SA",
-	"卡塔尔":                  "QA",
-	"Qatar":                "QA",
-	"科威特":                  "KW",
-	"Kuwait":               "KW",
-	"巴林":                   "BH",
-	"Bahrain":              "BH",
-	"阿曼":                   "OM",
-	"Oman":                 "OM",
-	"也门":                   "YE",
-	"Yemen":                "YE",
-	"伊拉克":                  "IQ",
-	"Iraq":                 "IQ",
-	"伊朗":                   "IR",
-	"Iran":                 "IR",
-	"约旦":                   "JO",
-	"Jordan":               "JO",
-	"黎巴嫩":                  "LB",
-	"Lebanon":              "LB",
-	"叙利亚":                  "SY",
-	"Syria":                "SY",
-	"以色列":                  "IL",
-	"Israel":               "IL",
-	"巴勒斯坦":                 "PS",
-	"Palestine":            "PS",
-	"土耳其":                  "TR",
-	"Turkey":               "TR",
-	"埃及":                   "EG",
-	"Egypt":                "EG",
-	"新加坡":                  "SG",
-	"Singapore":            "SG",
-	"马来西亚":                 "MY",
-	"Malaysia":             "MY",
-	"印度尼西亚":                "ID",
-	"印尼":                   "ID",
-	"Indonesia":            "ID",
-	"泰国":                   "TH",
-	"Thailand":             "TH",
-	"越南":                   "VN",
-	"Vietnam":              "VN",
-	"菲律宾":                  "PH",
-	"Philippines":          "PH",
-	"文莱":                   "BN",
-	"文莱达鲁萨兰国":              "BN",
-	"Brunei":               "BN",
-	"柬埔寨":                  "KH",
-	"Cambodia":             "KH",
-	"老挝":                   "LA",
-	"Laos":                 "LA",
-	"缅甸":                   "MM",
-	"Myanmar":              "MM",
-	"东帝汶":                  "TL",
-	"Timor-Leste":          "TL",
-	"美国":                   "US",
-	"United States":        "US",
-	"英国":                   "GB",
-	"United Kingdom":       "GB",
-	"德国":                   "DE",
-	"Germany":              "DE",
-	"法国":                   "FR",
-	"France":               "FR",
-	"日本":                   "JP",
-	"Japan":                "JP",
-	"韩国":                   "KR",
-	"South Korea":          "KR",
-	"澳大利亚":                 "AU",
-	"Australia":            "AU",
-	"加拿大":                  "CA",
-	"Canada":               "CA",
-	"俄罗斯":                  "RU",
-	"Russia":               "RU",
-	"印度":                   "IN",
-	"India":                "IN",
+// specialRegions 用于识别数据中可能出现在国家段或省份段的港澳台写法。
+var specialRegions = []struct {
+	name string
+	code string
+}{
+	{name: "香港", code: "HK"},
+	{name: "hongkong", code: "HK"},
+	{name: "澳门", code: "MO"},
+	{name: "macao", code: "MO"},
+	{name: "macau", code: "MO"},
+	{name: "台湾", code: "TW"},
+	{name: "taiwan", code: "TW"},
 }
 
 // countryCode 从 ip2region 的 region 字符串提取国家码。
@@ -104,19 +33,17 @@ func countryCode(region string) string {
 		return ""
 	}
 
+	if code := specialRegionCode(country); code != "" {
+		return code
+	}
+
 	if country == "中国" || strings.EqualFold(country, "China") {
 		for _, index := range []int{1, 2} {
 			if len(parts) <= index {
 				continue
 			}
-			province := parts[index]
-			switch {
-			case strings.Contains(province, "香港"):
-				return "HK"
-			case strings.Contains(province, "澳门"):
-				return "MO"
-			case strings.Contains(province, "台湾"):
-				return "TW"
+			if code := specialRegionCode(parts[index]); code != "" {
+				return code
 			}
 		}
 		return "CN"
@@ -127,15 +54,24 @@ func countryCode(region string) string {
 	}
 
 	last := strings.TrimSpace(parts[len(parts)-1])
-	if len(last) == 2 && isASCIILetter(last[0]) && isASCIILetter(last[1]) {
+	if isISOCountryCode(last) {
 		return strings.ToUpper(last)
 	}
 
-	return countryISO[country]
+	return lookupCountryName(country)
 }
 
-func isASCIILetter(character byte) bool {
-	return (character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z')
+func specialRegionCode(value string) string {
+	normalized := normalizeCountryName(value)
+	if normalized == "" {
+		return ""
+	}
+	for _, region := range specialRegions {
+		if strings.Contains(normalized, region.name) {
+			return region.code
+		}
+	}
+	return ""
 }
 
 func parseSearchers(value string) (int, error) {

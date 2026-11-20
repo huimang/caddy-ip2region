@@ -15,6 +15,8 @@ The module registers the `http.matchers.ip2region` request matcher. It works lik
 - Implement `Cleanup` so Caddy releases old searchers on configuration reload.
 - Detect Hong Kong, Macao and Taiwan separately from mainland China.
 - Support both common ip2region field layouts and prefer the ISO country code stored in the data.
+- Validate allowlists and denylists against the full ISO 3166-1 alpha-2 list.
+- Resolve English and Simplified Chinese country names for all ISO codes through CLDR.
 
 ## Requirements
 
@@ -103,7 +105,7 @@ gymlin.com {
 | `deny_countries` | One of the two | ISO 3166-1 alpha-2 codes to deny |
 | `searchers` | No | Searcher pool size, default `20`, must be greater than zero |
 
-At least one of `allow_countries` and `deny_countries` must be configured, otherwise validation fails.
+At least one of `allow_countries` and `deny_countries` must be configured, otherwise validation fails. Every code is checked against the 249 officially assigned ISO 3166-1 alpha-2 codes; invalid codes also fail validation. `UK` is accepted as an alias for `GB`, `EL` for `GR`, and the user-assigned code `XK` is accepted for Kosovo.
 
 Matching rules:
 
@@ -112,7 +114,7 @@ Matching rules:
 - Both configured: the country code must be in `allow_countries` and must not be in `deny_countries`.
 - Unparseable IPs, missing data and unknown country codes never match.
 
-Country codes are normalized to upper case, so both `cn` and `CN` work in the Caddyfile.
+Country codes are normalized to upper case, so both `cn` and `CN` work in the Caddyfile. Aliases are normalized before validation.
 
 ### JSON configuration
 
@@ -169,10 +171,10 @@ country|region|province|city|isp
 
 Parsing rules:
 
-1. When the last field contains two ASCII letters, it is used directly as the ISO country code.
-2. Chinese entries are checked for `HK`, `MO` and `TW` in the province fields; all other Chinese entries return `CN`.
+1. When the last field is a valid ISO 3166-1 alpha-2 code, it is used directly.
+2. Chinese entries are checked for `HK`, `MO` and `TW` in the country and province fields; all other Chinese entries return `CN`.
 3. `Reserved`, `0` and other unrecognized entries return an empty code and never match.
-4. When the country-code field is missing, the matcher falls back to the built-in country name map. Add new entries to `countryISO` in `country.go` when needed.
+4. When the country-code field is missing, the matcher resolves country names in English and Simplified Chinese through CLDR, plus common short forms and historical names. Add non-standard names to `countryNameAliases` in `iso.go`.
 
 ## Updating data
 
@@ -203,6 +205,8 @@ The tests cover:
 - Caddyfile parsing
 - Required options and country-code validation
 - Client IP fallback
+- Full ISO 3166-1 code list and extraction for every code
+- English and Simplified Chinese country name fallback
 - Country-code extraction and Hong Kong/Macao/Taiwan detection
 
 ## Project layout
@@ -210,9 +214,11 @@ The tests cover:
 ```text
 caddy-ip2region/
 ├── matcher.go        # module registration, provisioning, matching and Caddyfile parsing
-├── country.go        # region parsing and country-code mapping
+├── country.go        # region parsing and special-region detection
+├── iso.go            # ISO country codes, country names and aliases
 ├── matcher_test.go   # module and configuration tests
 ├── country_test.go   # country-code extraction tests
+├── iso_test.go       # ISO coverage and name fallback tests
 ├── go.mod
 └── go.sum
 ```
@@ -247,7 +253,7 @@ To roll back, restore the previous binary and restart Caddy. If you switch back 
 - Country or region matching only; no city-level matching.
 - Accuracy depends on the ip2region data source.
 - IPv6 clients do not match when `db_path_v6` is not configured.
-- The built-in country name map covers common countries only; add more entries if your data uses other names.
+- The name fallback uses CLDR English and Simplified Chinese names plus a small alias table; unusual or vendor-specific names may need explicit aliases.
 
 ## License
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"strings"
 
 	"github.com/caddyserver/caddy/v2"
 	"github.com/caddyserver/caddy/v2/caddyconfig/caddyfile"
@@ -198,7 +197,7 @@ func clientIP(request *http.Request) string {
 func normalizeCountryCodes(codes []string) []string {
 	result := make([]string, 0, len(codes))
 	for _, code := range codes {
-		normalized := strings.ToUpper(strings.TrimSpace(code))
+		normalized := normalizeCountryCode(code)
 		if normalized != "" {
 			result = append(result, normalized)
 		}
@@ -208,13 +207,8 @@ func normalizeCountryCodes(codes []string) []string {
 
 func validateCountryCodes(codes []string) error {
 	for _, code := range codes {
-		if len(code) != 2 {
-			return fmt.Errorf("invalid country code %q", code)
-		}
-		for _, character := range code {
-			if character < 'A' || character > 'Z' {
-				return fmt.Errorf("invalid country code %q", code)
-			}
+		if !isISOCountryCode(code) {
+			return fmt.Errorf("invalid ISO 3166-1 alpha-2 country code %q", code)
 		}
 	}
 	return nil
