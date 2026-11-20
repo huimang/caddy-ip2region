@@ -11,7 +11,6 @@
 - 同时支持 IPv4 与 IPv6 xdb，IPv6 可选。
 - 内置查询器池，默认 20 个查询器，并发安全。
 - 实现 `Cleanup`，Caddy 热重载时自动释放旧查询服务。
-- 单独识别中国香港、中国澳门和中国台湾。
 - 兼容两种 xdb 字段格式，优先使用数据中的 ISO 国家码。
 - 使用完整的 ISO 3166-1 alpha-2 列表校验允许和拒绝的国家码。
 - 通过 CLDR 解析全部 ISO 代码的英文和简体中文国家名。
@@ -52,7 +51,7 @@ http.matchers.ip2region
 @asia ip2region {
     db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
     db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
-    allow_countries CN HK MO TW SG MY ID TH VN PH BN KH LA MM TL
+    allow_countries CN SG MY ID TH VN PH BN KH LA MM TL
     searchers 20
 }
 ```
@@ -60,7 +59,7 @@ http.matchers.ip2region
 在站点中使用：
 
 ```caddyfile
-gymlin.com {
+example.com {
     @middleEast ip2region {
         db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
         db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
@@ -70,15 +69,15 @@ gymlin.com {
     @asia ip2region {
         db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
         db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
-        allow_countries CN HK MO TW SG MY ID TH VN PH BN KH LA MM TL
+        allow_countries CN SG MY ID TH VN PH BN KH LA MM TL
     }
 
     handle @middleEast {
-        redir https://me.gymlin.com{uri} 302
+        redir https://me.example.com{uri} 302
     }
 
     handle @asia {
-        redir https://cn.gymlin.com{uri} 302
+        redir https://asia.example.com{uri} 302
     }
 
     handle {
@@ -117,7 +116,7 @@ gymlin.com {
       "ip2region": {
         "db_path": "/opt/caddy/data/ip2region/ip2region_v4.xdb",
         "db_path_v6": "/opt/caddy/data/ip2region/ip2region_v6.xdb",
-        "allow_countries": ["CN", "HK", "MO", "TW"],
+        "allow_countries": ["CN", "SG", "MY", "ID"],
         "searchers": 20
       }
     }
@@ -151,7 +150,6 @@ gymlin.com {
 
 ```text
 中国|浙江省|杭州市|阿里|CN
-中国|香港特别行政区|0|电讯盈科|CN
 United Arab Emirates|Dubai|0|0|AE
 ```
 
@@ -164,7 +162,7 @@ United Arab Emirates|Dubai|0|0|AE
 解析规则：
 
 1. 最后一个字段是合法的 ISO 3166-1 alpha-2 代码时，直接作为国家码返回。
-2. 中国条目会检查国家段和省份段中的 `HK`、`MO`、`TW` 写法，其余返回 `CN`。
+2. 中国条目默认返回 `CN`。
 3. `Reserved` 或 `0` 等无法识别的条目返回空，匹配器视为不匹配。
 4. 缺少国家码字段时，通过 CLDR 解析英文和简体中文国家名，并补充常见简称和旧称；非标准名称可在 `iso.go` 的 `countryNameAliases` 中追加。
 
@@ -199,7 +197,7 @@ go test ./...
 - 客户端 IP 回退
 - 完整 ISO 3166-1 代码列表和逐代码提取
 - 英文和简体中文国家名兜底
-- 国家码提取和港澳台识别
+- 国家码提取和特殊地区识别
 
 ## 项目结构
 

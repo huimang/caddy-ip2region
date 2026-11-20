@@ -8,7 +8,7 @@ import (
 	"golang.org/x/text/language/display"
 )
 
-// isoCountryCodeList 是 ISO 3166-1 alpha-2 官方分配的 249 个代码。
+// isoCountryCodeList contains the 249 officially assigned ISO 3166-1 alpha-2 codes.
 const isoCountryCodeList = `
 AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ
 BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ
@@ -37,13 +37,13 @@ YE YT
 ZA ZM ZW
 `
 
-// countryCodeAliases 把常见的非 ISO 写法归一为官方代码。
+// countryCodeAliases maps common non-ISO forms to official codes.
 var countryCodeAliases = map[string]string{
 	"UK": "GB",
 	"EL": "GR",
 }
 
-// countryNameAliases 补充 ip2region 数据中常见的简称、旧称和非标准写法。
+// countryNameAliases adds common short forms, historical names and non-standard spellings found in ip2region data.
 var countryNameAliases = map[string]string{
 	"UAE":                                    "AE",
 	"阿联酋":                                    "AE",

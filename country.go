@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// specialRegions 用于识别数据中可能出现在国家段或省份段的港澳台写法。
+// specialRegions contains alternative names that may appear in the country or province fields.
 var specialRegions = []struct {
 	name string
 	code string
@@ -20,8 +20,8 @@ var specialRegions = []struct {
 	{name: "taiwan", code: "TW"},
 }
 
-// countryCode 从 ip2region 的 region 字符串提取国家码。
-// 当前数据格式为 国家|省份|城市|ISP|国家码，标准格式为 国家|区域|省份|城市|ISP。
+// countryCode extracts the country code from an ip2region region string.
+// The current layout is country|province|city|isp|country_code; the standard layout is country|region|province|city|isp.
 func countryCode(region string) string {
 	parts := strings.Split(region, "|")
 	if len(parts) == 0 {

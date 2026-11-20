@@ -61,7 +61,7 @@ func TestValidateRejectsMissingConfig(t *testing.T) {
 }
 
 func TestClientIPFallback(t *testing.T) {
-	request := httptest.NewRequest("GET", "https://gymlin.com/", nil)
+	request := httptest.NewRequest("GET", "https://example.com/", nil)
 	request.RemoteAddr = "203.0.113.10:54321"
 	if got := clientIP(request); got != "203.0.113.10" {
 		t.Fatalf("clientIP() = %q, want %q", got, "203.0.113.10")

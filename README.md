@@ -13,7 +13,6 @@ The module registers the `http.matchers.ip2region` request matcher. It works lik
 - Support IPv4 and optional IPv6 xdb files.
 - Use a concurrency-safe searcher pool with a configurable size.
 - Implement `Cleanup` so Caddy releases old searchers on configuration reload.
-- Detect Hong Kong, Macao and Taiwan separately from mainland China.
 - Support both common ip2region field layouts and prefer the ISO country code stored in the data.
 - Validate allowlists and denylists against the full ISO 3166-1 alpha-2 list.
 - Resolve English and Simplified Chinese country names for all ISO codes through CLDR.
@@ -60,7 +59,7 @@ Define a named matcher:
 @asia ip2region {
     db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
     db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
-    allow_countries CN HK MO TW SG MY ID TH VN PH BN KH LA MM TL
+    allow_countries CN SG MY ID TH VN PH BN KH LA MM TL
     searchers 20
 }
 ```
@@ -68,7 +67,7 @@ Define a named matcher:
 Use it in a site block:
 
 ```caddyfile
-gymlin.com {
+example.com {
     @middleEast ip2region {
         db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
         db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
@@ -78,15 +77,15 @@ gymlin.com {
     @asia ip2region {
         db_path /opt/caddy/data/ip2region/ip2region_v4.xdb
         db_path_v6 /opt/caddy/data/ip2region/ip2region_v6.xdb
-        allow_countries CN HK MO TW SG MY ID TH VN PH BN KH LA MM TL
+        allow_countries CN SG MY ID TH VN PH BN KH LA MM TL
     }
 
     handle @middleEast {
-        redir https://me.gymlin.com{uri} 302
+        redir https://me.example.com{uri} 302
     }
 
     handle @asia {
-        redir https://cn.gymlin.com{uri} 302
+        redir https://asia.example.com{uri} 302
     }
 
     handle {
@@ -125,7 +124,7 @@ Country codes are normalized to upper case, so both `cn` and `CN` work in the Ca
       "ip2region": {
         "db_path": "/opt/caddy/data/ip2region/ip2region_v4.xdb",
         "db_path_v6": "/opt/caddy/data/ip2region/ip2region_v6.xdb",
-        "allow_countries": ["CN", "HK", "MO", "TW"],
+        "allow_countries": ["CN", "SG", "MY", "ID"],
         "searchers": 20
       }
     }
@@ -159,7 +158,6 @@ Examples:
 
 ```text
 中国|浙江省|杭州市|阿里|CN
-中国|香港特别行政区|0|电讯盈科|CN
 United Arab Emirates|Dubai|0|0|AE
 ```
 
@@ -172,7 +170,7 @@ country|region|province|city|isp
 Parsing rules:
 
 1. When the last field is a valid ISO 3166-1 alpha-2 code, it is used directly.
-2. Chinese entries are checked for `HK`, `MO` and `TW` in the country and province fields; all other Chinese entries return `CN`.
+2. Chinese entries default to `CN`.
 3. `Reserved`, `0` and other unrecognized entries return an empty code and never match.
 4. When the country-code field is missing, the matcher resolves country names in English and Simplified Chinese through CLDR, plus common short forms and historical names. Add non-standard names to `countryNameAliases` in `iso.go`.
 
@@ -207,7 +205,7 @@ The tests cover:
 - Client IP fallback
 - Full ISO 3166-1 code list and extraction for every code
 - English and Simplified Chinese country name fallback
-- Country-code extraction and Hong Kong/Macao/Taiwan detection
+- Country-code extraction and special-region detection
 
 ## Project layout
 

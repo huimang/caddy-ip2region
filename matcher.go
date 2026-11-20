@@ -18,27 +18,27 @@ func init() {
 	caddy.RegisterModule(Matcher{})
 }
 
-// Matcher 按客户端 IP 所属国家匹配请求，数据来源为 ip2region xdb。
+// Matcher matches requests by the country of the client IP using ip2region xdb data.
 type Matcher struct {
-	// DBPath 是 IPv4 xdb 文件路径，必填。
+	// DBPath is the required path to the IPv4 xdb file.
 	DBPath string `json:"db_path,omitempty"`
 
-	// DBPathV6 是 IPv6 xdb 文件路径，可选。
+	// DBPathV6 is the optional path to the IPv6 xdb file.
 	DBPathV6 string `json:"db_path_v6,omitempty"`
 
-	// AllowCountries 是允许的国家或地区 ISO 3166-1 二字码列表。
+	// AllowCountries is the list of allowed ISO 3166-1 alpha-2 country codes.
 	AllowCountries []string `json:"allow_countries,omitempty"`
 
-	// DenyCountries 是拒绝的国家或地区 ISO 3166-1 二字码列表。
+	// DenyCountries is the list of denied ISO 3166-1 alpha-2 country codes.
 	DenyCountries []string `json:"deny_countries,omitempty"`
 
-	// Searchers 是查询器池大小，默认 20。
+	// Searchers is the searcher pool size. The default is 20.
 	Searchers int `json:"searchers,omitempty"`
 
 	region *service.Ip2Region
 }
 
-// CaddyModule 返回 Caddy 模块信息。
+// CaddyModule returns the Caddy module information.
 func (Matcher) CaddyModule() caddy.ModuleInfo {
 	return caddy.ModuleInfo{
 		ID:  "http.matchers.ip2region",
@@ -46,7 +46,7 @@ func (Matcher) CaddyModule() caddy.ModuleInfo {
 	}
 }
 
-// Provision 加载 xdb 并创建并发安全的查询服务。
+// Provision loads the xdb files and creates a concurrency-safe search service.
 func (m *Matcher) Provision(_ caddy.Context) error {
 	if m.DBPath == "" {
 		return fmt.Errorf("db_path is required")
@@ -83,7 +83,7 @@ func (m *Matcher) Provision(_ caddy.Context) error {
 	return nil
 }
 
-// Validate 校验必填项和国家码格式。
+// Validate checks required options and country codes.
 func (m *Matcher) Validate() error {
 	if m.DBPath == "" {
 		return fmt.Errorf("db_path is required")
@@ -103,7 +103,7 @@ func (m *Matcher) Validate() error {
 	return nil
 }
 
-// Match 判断请求客户端 IP 是否命中配置的国家列表。
+// Match reports whether the client IP belongs to the configured country lists.
 func (m *Matcher) Match(request *http.Request) bool {
 	if m.region == nil {
 		return false
@@ -130,7 +130,7 @@ func (m *Matcher) Match(request *http.Request) bool {
 	return true
 }
 
-// Cleanup 释放查询服务。
+// Cleanup releases the search service.
 func (m *Matcher) Cleanup() error {
 	if m.region != nil {
 		m.region.Close()
@@ -139,7 +139,7 @@ func (m *Matcher) Cleanup() error {
 	return nil
 }
 
-// UnmarshalCaddyfile 解析 Caddyfile 中的 ip2region 匹配器配置。
+// UnmarshalCaddyfile parses the ip2region matcher configuration from a Caddyfile.
 func (m *Matcher) UnmarshalCaddyfile(dispenser *caddyfile.Dispenser) error {
 	for dispenser.Next() {
 		for nesting := dispenser.Nesting(); dispenser.NextBlock(nesting); {
