@@ -1,3 +1,5 @@
+// Package ip2region provides a Caddy HTTP request matcher that uses ip2region
+// xdb data to match requests by the client IP's country.
 package ip2region
 
 import (
@@ -130,6 +132,11 @@ func (m *Matcher) Match(request *http.Request) bool {
 	return true
 }
 
+// MatchWithError implements caddyhttp.RequestMatcherWithError.
+func (m *Matcher) MatchWithError(request *http.Request) (bool, error) {
+	return m.Match(request), nil
+}
+
 // Cleanup releases the search service.
 func (m *Matcher) Cleanup() error {
 	if m.region != nil {
@@ -224,10 +231,11 @@ func containsCountry(codes []string, code string) bool {
 }
 
 var (
-	_ caddy.Module             = (*Matcher)(nil)
-	_ caddy.Provisioner        = (*Matcher)(nil)
-	_ caddy.Validator          = (*Matcher)(nil)
-	_ caddy.CleanerUpper       = (*Matcher)(nil)
-	_ caddyhttp.RequestMatcher = (*Matcher)(nil)
-	_ caddyfile.Unmarshaler    = (*Matcher)(nil)
+	_ caddy.Module                      = (*Matcher)(nil)
+	_ caddy.Provisioner                 = (*Matcher)(nil)
+	_ caddy.Validator                   = (*Matcher)(nil)
+	_ caddy.CleanerUpper                = (*Matcher)(nil)
+	_ caddyhttp.RequestMatcher          = (*Matcher)(nil)
+	_ caddyhttp.RequestMatcherWithError = (*Matcher)(nil)
+	_ caddyfile.Unmarshaler             = (*Matcher)(nil)
 )
