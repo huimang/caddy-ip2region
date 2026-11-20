@@ -28,7 +28,7 @@
 ```bash
 go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 xcaddy build v2.11.4 \
-  --with github.com/huimang/caddy-ip2region/v2=./
+  --with github.com/huimang/caddy-ip2region=./
 ```
 
 确认模块已注册：

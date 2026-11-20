@@ -32,11 +32,11 @@ go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
 
 # Build from this checkout
 xcaddy build v2.11.4 \
-  --with github.com/huimang/caddy-ip2region/v2=./
+  --with github.com/huimang/caddy-ip2region=./
 
 # Or build from the published module
 xcaddy build v2.11.4 \
-  --with github.com/huimang/caddy-ip2region/v2@latest
+  --with github.com/huimang/caddy-ip2region@latest
 ```
 
 Verify that the module is registered:
